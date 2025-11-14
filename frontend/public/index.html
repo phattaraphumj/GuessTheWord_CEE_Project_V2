@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Guess the Word</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+    <main class="container">
+        <header>
+            <h1>Guess the Word</h1>
+            <!--p class="subtitle">Ask yes/no questions to guess the actor or actress</p-->
+        </header>
+
+        <section id="rules" class="card">
+            <h2>How to Play</h2>
+            <div id="rules-text" class="placeholder">
+                1. Click "Start Game" to begin.<br />
+                2. Ask yes/no questions using the provided templates or your own questions (yes/no questions
+                only).<br />
+                3. Guess the word when you think you know it.<br />
+                4. You can surrender at any time to reveal the word.<br />
+            </div>
+        </section>
+
+        <section id="game-controls" class="card">
+            <h2>Game</h2>
+
+            <div id="category-section">
+                <h3 id="category-header">Category (Prompt)</h3>
+                
+                <div id="category-input-wrapper" class="guess-row" style="margin-bottom: 12px;">
+                    <input id="category-prompt" type="text" autocomplete="off" placeholder="เช่น 'ของใช้ในครัว', 'สัตว์ปีก', 'หนัง Marvel'" />
+                </div>
+                
+                <!-- <div id="category-display-wrapper" class="info hidden" style="margin-bottom: 12px;">
+                    <strong>Category:</strong> <span id="category-display-text"></span>
+                </div> -->
+            </div>
+
+            <div class="controls-row">
+                <button id="start-btn" class="btn primary">▶ Start Game</button>
+                <button id="surrender-btn" class="btn danger hidden">Surrender</button>
+            </div>
+
+            <div id="current-state" class="status">
+                <strong>Game state:</strong> <span id="game-state">Not started</span>
+            </div>
+
+            <div id="picked-actor" class="hidden info">
+                <strong>Word:</strong> <span id="actor-name">—</span>
+            </div>
+
+            <hr />
+
+            <div id="ask-section">
+                <h3>Ask a question</h3>
+
+                <!--div class="template-grid"-->
+                    <!--
+                    <div class="template-item">
+                        <label>Sex</label>
+                        <div class="inline">
+                            <button class="btn template-btn" data-type="sex" data-value="male">Is the actor
+                                male?</button>
+                            <button class="btn template-btn" data-type="sex" data-value="female">Is the actor
+                                female?</button>
+                        </div>
+                    </div>
+                    
+                    <div class="template-item">
+                        <label for="nationality">Ethnicity / Nationality</label>
+                        <div class="inline">
+                            <select id="nationality">
+                                <option value="">Select</option>
+                                <option>American</option>
+                                <option>British</option>
+                                <option>Indian</option>
+                                <option>Chinese</option>
+                                <option>French</option>
+                                <option>Japanese</option>
+                                <option>Korean</option>
+                                <option>Brazilian</option>
+                                <option>Australian</option>
+                            </select>
+                            <button id="ask-nationality" class="btn">Ask</button>
+                        </div>
+                    </div>
+
+                    <div class="template-item">
+                        <label>Age</label>
+                        <div class="inline">
+                            <select id="age-compare">
+                                <option value="older">Is the actor older than</option>
+                                <option value="younger">Is the actor younger than</option>
+                            </select>
+                            <input id="age-value" type="number" min="0" placeholder="Age" />
+                            <button id="ask-age" class="btn">Ask</button>
+                        </div>
+                    </div>
+                </div>
+                -->
+                <!--h3>Custom yes/no question</h3-->
+                
+                <!-- 
+                  VVVV --- (นี่คือส่วนที่แก้ไข) --- VVVV
+                  1. เพิ่ม class="guess-row"
+                  2. เพิ่มปุ่ม "Enter"
+                -->
+                <form id="custom-question-form" class="guess-row">
+                    <input id="custom-question" type="text" autocomplete="on" placeholder="Confirm by pressing Enter" />
+                    <button type="submit" id="ask-question-btn" class="btn">Enter</button>
+                </form>
+                <!-- ^^^^ --- (จบส่วนที่แก้ไข) --- ^^^^ -->
+                
+                <div id="custom-question-feedback" class="feedback"></div>
+
+                <div class="divider"></div>
+
+                <h3>Answer by guessing the word</h3>
+                <div class="guess-row">
+                    <input id="guess-input" type="text" placeholder="Type the word (typos allowed)" />
+                    <button id="submit-guess" class="btn primary">Submit Guess</button>
+                </div>
+
+                <!--div class="divider"></div-->
+
+                <div id="log" class="log">
+                    <h4>Log</h4>
+                    <ul id="log-list"></ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="end-actions" class="card hidden">
+            <h2>Game finished</h2>
+            <div>
+                <label for="player-name">Add your name to leaderboard</label>
+                <input id="player-name" type="text" placeholder="Your name" />
+                <button id="save-score" class="btn primary">Save to leaderboard</button>
+            </div>
+        </section>
+        <!--
+        <section id="leaderboard" class="card">
+            <h2>Leaderboard (Top 5)</h2>
+            <ol id="leaderboard-list" class="leaderboard-list">
+            </ol>
+
+            <div class="find-rank">
+                <input id="find-name" type="text" placeholder="Enter your name to find rank" />
+                <button id="find-rank-btn" class="btn">Find my rank</button>
+            </div>
+        </section>
+        -->
+    </main>
+    <script src="scripts/AI.js" type="module"></script>
+</body>
+
+</html>
