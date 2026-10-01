@@ -39,26 +39,32 @@
 
 ## 📂 โครงสร้างโปรเจกต์ (Project Structure)
 
-โปรเจกต์นี้แบ่งเป็น 2 ส่วนหลัก: `backend` และ `frontend`
+โปรเจกต์นี้แบ่งโค้ดออกเป็น 2 ส่วนหลัก: `backend` และ `frontend` แต่ใช้ **`package.json` ตัวเดียวที่รากโปรเจกต์** (ติดตั้ง dependency ครั้งเดียว)
+
+โครงสร้างไฟล์:
+
+```text
+├── package.json          ← dependency + scripts ของทั้งโปรเจกต์ (ติดตั้งและรันจากตรงนี้)
+├── package-lock.json
+├── .env                  ← ไฟล์นี้ต้องอยู่ที่รากโปรเจกต์ (dotenv อ่านจากโฟลเดอร์ที่รันคำสั่ง)
+├── .env.template
+└── .nvmrc
+```
 
 ---
 
 ## 🚀 วิธีการรันโปรเจกต์ (Installation & Usage)
 
-คุณต้องรัน Server 2 ตัวพร้อมกัน (Backend และ Frontend)
+คุณต้องรัน Server 2 ตัวพร้อมกัน (Backend และ Frontend) แต่ติดตั้ง dependency เพียงครั้งเดียวที่รากโปรเจกต์
 
 ### 1. การตั้งค่า Backend (Port 3222)
 
-1.  **เข้าไปที่โฟลเดอร์ Backend:**
-    ```bash
-    cd backend
-    ```
-2.  **ติดตั้ง Dependencies:**
+1.  **ติดตั้ง Dependencies (ที่รากโปรเจกต์):**
     ```bash
     npm install
     ```
-3.  **สร้างไฟล์ `.env`:**
-    สร้างไฟล์ชื่อ `.env` ในโฟลเดอร์ `backend` และใส่ค่าตัวแปรดังนี้:
+2.  **สร้างไฟล์ `.env`:**
+    คัดลอกไฟล์ `.env.template` เป็น `.env` **ที่รากโปรเจกต์** แล้วใส่ค่าตัวแปรดังนี้:
     ```env
     # ลิงก์เชื่อมต่อ MongoDB (เช่น จาก Atlas หรือ Local)
     MONGO_URI="your_mongodb_connection_string"
@@ -69,31 +75,26 @@
     # Port ที่ Backend จะรัน
     PORT_BACKEND=3222
     ```
-4.  **รัน Backend Server:**
+3.  **รัน Backend Server:**
     ```bash
-    node server.js
+    npm run start:backend
     ```
     (Backend ควรจะรันที่ `http://localhost:3222`)
 
 ### 2. การตั้งค่า Frontend (Port 3221)
 
 1.  **เปิด Terminal ใหม่** (อย่าปิด Terminal ของ Backend)
-2.  **เข้าไปที่โฟลเดอร์ Frontend:**
+2.  **รัน Frontend Server** (รันจากรากโปรเจกต์):
     ```bash
-    cd frontend
-    ```
-3.  **ติดตั้ง Dependencies (สำหรับ Express):**
-    ```bash
-    npm install express
-    ```
-4.  **รัน Frontend Server:**
-    ```bash
-    node server.js
+    npm run start:frontend
     ```
     (Frontend ควรจะรันที่ `http://localhost:3221`)
 
-5.  **เปิดเล่นเกม:**
+3.  **เปิดเล่นเกม:**
     เข้าเบราว์เซอร์แล้วไปที่ **`http://localhost:3221`**
+
+> 💡 ถ้าต้องการรันทั้งสองเซิร์ฟเวอร์พร้อมกันในคำสั่งเดียว ใช้ `npm run dev`
+> (ทั้งสองคำสั่งใช้ `node --watch` จึงรีสตาร์ทอัตโนมัติเมื่อแก้โค้ด)
 
 ---
 
