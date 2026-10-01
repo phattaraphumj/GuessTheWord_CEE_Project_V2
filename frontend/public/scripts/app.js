@@ -8,6 +8,7 @@ import { applyLang, getLang, onLangChange, setLang, t } from './i18n.js';
 
 const STORAGE_KEY = 'gtw.session';
 const NAME_KEY = 'gtw.playerName';
+const CUT_KEY = 'gtw.cutWords';
 const ARM_TIMEOUT = 4000;
 
 let session = readSession();
@@ -38,6 +39,30 @@ function writeSession() {
 // ชื่อผู้เล่นเก็บแยกจากเกม เพื่อให้จำได้ข้ามเกม
 const readPlayerName = () => localStorage.getItem(NAME_KEY) ?? '';
 const writePlayerName = (name) => localStorage.setItem(NAME_KEY, name);
+
+// คำที่ผู้เล่นกดตัดออก เก็บแยกต่อ gameId
+const readCutWords = () => {
+  try {
+    return JSON.parse(localStorage.getItem(CUT_KEY)) ?? {};
+  } catch {
+    return {};
+  }
+};
+
+const writeCutWords = (gameId, words) => {
+  const all = readCutWords();
+
+  if (words.length === 0) delete all[gameId];
+  else all[gameId] = words;
+
+  localStorage.setItem(CUT_KEY, JSON.stringify(all));
+};
+
+const cutWordsFor = (gameId) => readCutWords()[gameId] ?? [];
+
+function showWordBank(gameId, words) {
+  ui.renderWordBank(words ?? [], gameId ? cutWordsFor(gameId) : []);
+}
 
 const countQuestions = (history = []) =>
   history.filter((item) => !item.q?.startsWith('GUESS:')).length;
@@ -134,6 +159,7 @@ function resetConsole() {
   ui.updateGauge(0);
   ui.setBadge(currentStatus);
   ui.setCategory('');
+  ui.renderWordBank([], []);
 
   el.categoryInput.value = '';
   el.chipList
@@ -168,12 +194,13 @@ async function startGame(category) {
   try {
     await discardSessionGame();
 
-    const { gameId } = await api.createNewGame(category, playerName);
+    const { gameId, candidates } = await api.createNewGame(category, playerName);
 
     session = { gameId, category, playerName, questions: 0 };
     writeSession();
 
     resetConsole();
+    showWordBank(gameId, candidates);
     currentCategory = category;
     ui.setCategory(category);
     ui.addNote(t('note.started'));
@@ -282,6 +309,7 @@ async function restart() {
 }
 
 function finish(result, word) {
+  if (session?.gameId) writeCutWords(session.gameId, []);
   session = null;
   writeSession();
   currentStatus = result;
@@ -309,9 +337,9 @@ async function restore() {
 
     questionsAsked = countQuestions(game.history);
     currentStatus = game.status;
-    currentCategory = game.category || session.category;
 
     resetConsole();
+    showWordBank(session.gameId, game.candidates);
     currentCategory = game.category || session.category;
     ui.setCategory(currentCategory);
     ui.renderHistory(game.history);
@@ -373,6 +401,15 @@ function init() {
 
     el.questionInput.value = quickButton.dataset.question;
     el.questionInput.focus();
+  });
+
+  // ปุ่มคำในคลัง: กดได้หน้าที่เดียวคือตัดคำออก (กดซ้ำเพื่อยกเลิก)
+  el.wordBank.addEventListener('click', (event) => {
+    const button = event.target.closest('.bank__word');
+    if (!button) return;
+
+    ui.toggleWordCut(button.dataset.word);
+    if (session?.gameId) writeCutWords(session.gameId, ui.getEliminatedWords());
   });
 
   document.querySelector('.lang').addEventListener('click', (event) => {

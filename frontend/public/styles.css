@@ -399,38 +399,41 @@ input[type="text"]:focus {
   color: var(--paper);
 }
 
-/* ปุ่มคำตอบสุดท้าย: เป็นเส้นขอบสีเหลือง ไม่แข่งกับปุ่มหลักสีขาว */
+/* ปุ่มคำตอบสุดท้าย: เขียวเต็ม เพื่อให้เห็นชัดว่านี่คือการกระทำที่ตัดสินเกม */
 .btn--final {
-  background: transparent;
-  border-color: var(--accent);
-  color: var(--accent);
+  padding: 12px 22px;
+  background: var(--yes);
+  border-color: var(--yes);
+  color: #0d1f18;
 }
 
 .btn--final:hover:not(:disabled) {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #1a1408;
+  background: #7ce0b4;
+  border-color: #7ce0b4;
 }
 
 .btn--quiet {
-  color: var(--muted);
+  border-color: rgba(99, 214, 164, 0.5);
+  color: var(--yes);
 }
 
 .btn--quiet:hover:not(:disabled) {
-  color: var(--ink);
+  background: var(--yes-wash);
+  border-color: var(--yes);
+  color: var(--yes);
 }
 
 .btn--danger {
   background: transparent;
-  border-color: var(--rule-strong);
-  color: var(--muted);
+  border-color: rgba(255, 128, 120, 0.55);
+  color: var(--no);
 }
 
 .btn--danger:hover:not(:disabled),
 .btn--danger.is-armed {
-  background: var(--no-wash);
+  background: var(--no);
   border-color: var(--no);
-  color: var(--no);
+  color: #21100f;
 }
 
 :where(button, input, a):focus-visible {
@@ -622,9 +625,14 @@ input[type="text"]:focus {
   color: var(--no);
 }
 
+/* หมวดที่เล่นอยู่: ทำให้เห็นชัดว่ากำลังทายอยู่ในหมวดอะไร */
 .console__category {
+  padding: 3px 10px;
+  background: var(--accent-wash);
+  border: 1px solid var(--accent);
+  border-radius: 2px;
+  color: var(--accent);
   overflow: hidden;
-  color: var(--muted);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -836,6 +844,92 @@ input[type="text"]:focus {
   border-style: solid;
   border-color: var(--ink);
   color: var(--ink);
+}
+
+/* ── คลังคำของรอบนี้ ────────────────────────────────────────── */
+
+.bank {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+}
+
+.bank__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.bank__title {
+  margin: 0;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: var(--label-size);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bank__count {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: var(--label-size);
+  font-variant-numeric: tabular-nums;
+}
+
+.bank__count b {
+  color: var(--accent);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.bank__count span {
+  margin-left: 5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.bank__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.bank__word {
+  padding: 5px 11px;
+  background: var(--card);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--r-sm);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background var(--speed) ease, border-color var(--speed) ease,
+    color var(--speed) ease, opacity var(--speed) ease;
+}
+
+.bank__word:hover {
+  border-color: var(--no);
+  color: var(--no);
+}
+
+.bank__word.is-cut {
+  background: transparent;
+  border-color: var(--rule);
+  color: var(--muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--no);
+  text-decoration-thickness: 1px;
+  opacity: 0.65;
+}
+
+.bank__word.is-cut:hover {
+  border-color: var(--rule-strong);
+  color: var(--ink-soft);
+  text-decoration: none;
+  opacity: 1;
 }
 
 .field-row--guess {

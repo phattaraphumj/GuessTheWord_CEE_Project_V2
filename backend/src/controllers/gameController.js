@@ -39,7 +39,9 @@ export const createGame = async (req, res) => {
     });
 
     await newGame.save();
-    res.status(201).json({ gameId: newGame._id });
+
+    // ส่ง pool คำให้ผู้เล่นไปแสดงเป็นปุ่มตัดคำทันที (ไม่ส่ง secretWord)
+    res.status(201).json({ gameId: newGame._id, candidates: newGame.candidates });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -56,6 +58,9 @@ export const getGame = async (req, res) => {
       history: game.history,
       category: game.category,
       playerName: game.playerName,
+
+      // pool คำทั้งหมดที่ผู้เล่นเห็นเป็นปุ่ม (รวมคำลับอยู่ในนี้ — ตั้งใจให้เล่นแบบตัดคำ)
+      candidates: game.candidates,
 
       // ซ่อนคำตอบไว้ตอนเกมยังไม่จบ
       answer: game.status !== 'playing' ? game.secretWord : null,

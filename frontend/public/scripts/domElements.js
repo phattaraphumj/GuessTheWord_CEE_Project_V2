@@ -36,6 +36,9 @@ export const guessForm = byId('guess-form');
 export const guessInput = byId('guess-input');
 export const guessBtn = byId('submit-guess');
 
+export const wordBank = byId('word-bank');
+export const bankLeft = byId('bank-left');
+
 // หน้าเฉลย
 export const revealCard = byId('reveal-card');
 export const revealEyebrow = byId('reveal-eyebrow');

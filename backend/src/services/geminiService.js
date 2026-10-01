@@ -115,14 +115,14 @@ async function safeGenerate(prompt, retries = 2) {
   throw lastError;
 }
 
-// จำนวนคำที่ให้ AI สร้างเป็นตัวเลือก แล้วค่อยสุ่มเองในโค้ด
-const CANDIDATE_COUNT = 20;
+// จำนวนคำที่ให้ AI คิดมา (ต้องมากกว่า POOL_SIZE เพื่อให้สุ่มได้หลากหลาย)
+const CANDIDATE_COUNT = 40;
 
 // ระดับความยาก: 1 = สุ่มได้ทั้ง pool, 2 = ข้ามคำที่คนรู้จักดีที่สุด, 3 = เอาเฉพาะท้าย pool
 const GAME_DIFFICULTY = Number(process.env.GAME_DIFFICULTY) || 2;
 
-// จำนวนคำใน pool ของเกมหนึ่งรอบ (คำลับจะหยิบมาจากในนี้)
-const POOL_SIZE = 10;
+// จำนวนคำใน pool ของเกมหนึ่งรอบ (คำลับจะหยิบมาจากในนี้ และผู้เล่นเห็นทั้งหมด)
+const POOL_SIZE = 30;
 
 // แปลงคำตอบของ AI ให้เป็น array ของคำที่สะอาด
 function parseCandidateList(raw, count) {

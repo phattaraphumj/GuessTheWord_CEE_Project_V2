@@ -135,6 +135,51 @@ export function hideThinking() {
   thinkingNode = null;
 }
 
+/* ── คลังคำของรอบนี้: ปุ่มกดได้หน้าที่เดียวคือ "ตัดคำ" ──────────── */
+
+function refreshBankLeft() {
+  const total = el.wordBank.querySelectorAll('.bank__word').length;
+  const cut = el.wordBank.querySelectorAll('[aria-pressed="true"]').length;
+  el.bankLeft.textContent = String(total - cut);
+}
+
+export function renderWordBank(words = [], eliminated = []) {
+  const cut = new Set(eliminated);
+
+  el.wordBank.replaceChildren(
+    ...words.map((word) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = cut.has(word) ? 'bank__word is-cut' : 'bank__word';
+      button.dataset.word = word;
+      button.textContent = word;
+      button.setAttribute('aria-pressed', String(cut.has(word)));
+      return button;
+    }),
+  );
+
+  refreshBankLeft();
+}
+
+// กดคำหนึ่งคำเพื่อสลับสถานะ "ตัดแล้ว" — DOM เป็นแหล่งความจริงเดียว
+export function toggleWordCut(word) {
+  const button = el.wordBank.querySelector(`[data-word="${CSS.escape(word)}"]`);
+  if (!button) return null;
+
+  const isCut = button.getAttribute('aria-pressed') === 'true';
+  button.setAttribute('aria-pressed', String(!isCut));
+  button.classList.toggle('is-cut', !isCut);
+  refreshBankLeft();
+
+  return !isCut;
+}
+
+export function getEliminatedWords() {
+  return [...el.wordBank.querySelectorAll('[aria-pressed="true"]')].map(
+    (node) => node.dataset.word,
+  );
+}
+
 export function renderHistory(history = []) {
   for (const item of history) {
     if (item.q?.startsWith('GUESS:')) {

@@ -53,6 +53,8 @@ const DICT = {
 
     'quick.label': 'Quick yes/no questions',
     'transcript.label': 'Transcript of your questions',
+    'bank.title': 'Tap a word to rule it out',
+    'bank.left': 'left',
     'question.placeholder': 'Ask a yes/no question, e.g. Is it red?',
     'btn.ask': 'Ask',
     'guess.placeholder': 'Guess the word',
@@ -150,6 +152,8 @@ const DICT = {
 
     'quick.label': 'คำถามใช่/ไม่ใช่ที่ใช้บ่อย',
     'transcript.label': 'บันทึกคำถามที่คุณถามไปแล้ว',
+    'bank.title': 'กดคำที่ตัดออกได้',
+    'bank.left': 'คำที่เหลือ',
     'question.placeholder': 'ถามคำถามที่ใช่/ไม่ใช่ เช่น มีสีขาวไหม',
     'btn.ask': 'ถาม',
     'guess.placeholder': 'เดาคำลับของคุณ',
