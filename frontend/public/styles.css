@@ -922,7 +922,6 @@ input[type="text"]:focus {
   text-decoration: line-through;
   text-decoration-color: var(--no);
   text-decoration-thickness: 1px;
-  opacity: 0.65;
 }
 
 .bank__word.is-cut:hover {
