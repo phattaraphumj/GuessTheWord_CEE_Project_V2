@@ -40,8 +40,8 @@ export const createGame = async (req, res) => {
       return res.status(400).json({ msg: 'No category prompt provided' });
     }
 
-    // 2. (ใหม่) "เรียก AI" ให้คิดคำลับ
-    const secretWord = await generateSecretWord(categoryPrompt);
+    // 2. (ใหม่) ให้ AI คิดคำลับ จากการสุ่มใน list ของ 20 คำในหมวดหมู่นั้น
+    const { secretWord, candidates } = await generateSecretWord(categoryPrompt);
 
     // 3. (ลบ Logic เก่าที่สุ่มดารา)
     // (เราไม่ใช้ Celebrity.count() แล้ว)
@@ -49,6 +49,7 @@ export const createGame = async (req, res) => {
     // 4. "สร้างเกม" โดยใช้ "คำลับ" ที่ AI คิด
     const newGame = new Game({
       secretCeleb: secretWord, // (เรายังใช้ field 'secretCeleb' นะครับ แต่ข้างในเป็น "กระทะ")
+      candidates: candidates,
       category: categoryPrompt,
       history: [],
       status: 'playing',

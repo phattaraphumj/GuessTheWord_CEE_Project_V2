@@ -1,0 +1,20 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "mcp": {
+    "mongodb-mcp-server": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "mongodb-mcp-server@1.13.0",
+        "--readOnly"
+      ],
+      "environment": {
+        "MDB_MCP_CONNECTION_STRING": "mongodb+srv://poomgame92_db_user:6U0v32mLgmtubP1v@cluster0.6jjyqqa.mongodb.net",
+        "MDB_MCP_API_CLIENT_ID": "poomgame92_db_user",
+        "MDB_MCP_API_CLIENT_SECRET": "6U0v32mLgmtubP1v",
+        "MDB_MCP_READ_ONLY": "true"
+      }
+    }
+  }
+}

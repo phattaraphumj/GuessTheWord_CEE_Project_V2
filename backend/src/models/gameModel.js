@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 
 const GameSchema = new mongoose.Schema({
   secretCeleb: { type: String, required: true },
+  candidates: { type: [String], default: [] },
   status: { type: String, default: 'playing' },
   history: [
     {

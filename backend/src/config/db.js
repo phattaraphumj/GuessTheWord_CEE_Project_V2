@@ -4,8 +4,17 @@
 import mongoose from 'mongoose';
 
 const connectDB = async () => {
+  const uri = process.env.MONGODB_URI || process.env.MONGO_URI;
+
+  if (!uri) {
+    console.error(
+      '❌ MONGODB_URI is not set. Copy .env.template to .env and fill in the values.',
+    );
+    process.exit(1);
+  }
+
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(uri);
     console.log('MongoDB Connected...');
   } catch (err) {
     console.error(err.message);
