@@ -1,291 +1,976 @@
+/* ═══════════════════════════════════════════════════════════════
+   ทายคำ — ระบบภาพ "โต๊ะคะแนน"
+   หลักการ: กระดาษสีอ่อน เส้นบางแทนเงา สี่เหลี่ยมแทนวงกลม
+   สีเหลืองใช้เฉพาะ "สถานะของเกม" เท่านั้น ที่อื่นใช้หมึกและกระดาษ
+   ═══════════════════════════════════════════════════════════════ */
+
 :root {
-  --bg: #0f0f0f;
-  --card: #141414;
-  --accent: #4db7e2;
-  --accent-2: #4395be;
-  --danger: #831b1b;
-  --muted: #4395be;
-  --shadow: 0 4px 12px rgba(30, 41, 59, 0.06);
-  --radius: 10px;
-  --max-width: 980px;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  color-scheme: dark;
 
-  /* VVVV --- (แก้ไข 2 บรรทัดนี้) --- VVVV */
-  
-  /* --- OPTION 1 (แนะนำ: เขียวอมฟ้า/Teal) --- */
-  /* (สีนี้จะเข้ากับโทนสีฟ้า/Cyan ของเว็บคุณได้ดีที่สุด) */
-  --success: #14b8a6;
-  --success-2: #0d9488;
+  /* วัสดุ — กราไฟเข้มเย็น ไม่ใช่ดำสนิท */
+  --paper: #101216;
+  --card: #171a1f;
+  --card-sunken: #1c2027;
+  --rule: #262b33;
+  --rule-strong: #39404a;
 
-  /* --- OPTION 2 (ทางเลือก: ม่วง/Purple) --- */
-  /* (สีนี้จะให้ความรู้สึก 'Tech/Cyber' ที่เข้ากับธีม Dark Mode) */
-  /*
-  --success: #a855f7;
-  --success-2: #9333ea;
-  */
+  /* หมึก */
+  --ink: #e9ebee;
+  --ink-soft: #bcc2ca;
+  --muted: #8b929c;
+  --placeholder: #868d97;
 
-  /* --- OPTION 3 (ทางเลือก: ส้ม/Amber) --- */
-  /* (สีนี้เป็นโทนอุ่น จะ "ตัด" กับสีฟ้าของเว็บคุณอย่างชัดเจน) */
-  /*
-  --success: #f59e0b;
-  --success-2: #d97706;
-  */
+  /* สถานะเกม — ใช้สีเหลืองเฉพาะตรงนี้ */
+  --accent: #f0b45c;
+  --accent-wash: rgba(240, 180, 92, 0.13);
 
-  /* ^^^^ -------------------------------- ^^^^ */
+  --yes: #63d6a4;
+  --yes-wash: rgba(99, 214, 164, 0.12);
+  --no: #ff8078;
+  --no-wash: rgba(255, 128, 120, 0.12);
+  --maybe: #e6c268;
+  --maybe-wash: rgba(230, 194, 104, 0.12);
+
+  /* รูปทรง — เล็กและเป็นมุมฉาก */
+  --r: 4px;
+  --r-sm: 3px;
+
+  /* ฟอนต์ */
+  --display: "Bai Jamjuree", "IBM Plex Sans Thai", system-ui, sans-serif;
+  --body: "IBM Plex Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", monospace;
+
+  --label-size: 0.6875rem;
+  --speed: 140ms;
 }
 
 * {
-  box-sizing: border-box
+  box-sizing: border-box;
 }
 
 html,
 body {
-  height: 100%
+  height: 100%;
 }
 
 body {
   margin: 0;
-  background: linear-gradient(180deg, #2e2929 0%, var(--bg) 100%);
-  color: #50b6df;
+  padding: 0 24px 72px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 0.9375rem;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  padding: 32px 16px;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 16px;
 }
 
-.container {
+/* ภาษาไทยต้องการพื้นที่บรรทัดมากกว่า */
+html[lang="th"] body {
+  line-height: 1.75;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.app {
   width: 100%;
-  max-width: var(--max-width);
+  max-width: 1120px;
+  margin: 0 auto;
 }
 
-header {
-  margin-bottom: 12px;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+/* ── ป้ายกำกับ: mono ตัวพิมพ์เล็ก ตัวอักษรเว้น ────────────────── */
+
+.label,
+.eyebrow,
+.panel__label,
+.quick__label,
+.gauge__label,
+.console__category {
+  font-family: var(--mono);
+  font-size: var(--label-size);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-h1 {
-  margin: 0;
-  font-size: 1.6rem;
-  color: var(--accent-2);
-}
-
-.subtitle {
-  margin: 4px 0 0;
-  color: var(--muted)
-}
-
-.card {
-  background: var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 18px;
-  margin-bottom: 16px;
-}
-
-.placeholder {
-  min-height: 64px;
-  border: 2px dashed #e6eef9;
-  border-radius: 8px;
-  padding: 12px;
+.eyebrow,
+.panel__label,
+.quick__label,
+.gauge__label {
   color: var(--muted);
 }
 
-.controls-row {
+/* คำอธิบายสั้น ๆ ใช้ฟอนต์เนื้อความ อ่านง่ายกว่า mono ตัวพิมพ์ใหญ่ */
+.board__hint {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+/* ── หัวเรื่องแบบหนังสือพิมพ์ ─────────────────────────────────── */
+
+.topbar {
   display: flex;
-  gap: 12px;
-  margin-bottom: 12px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--rule-strong);
 }
 
-.btn {
-  border: none;
-  background: #5bfff2;
-  color: #0f172a;
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: transform .08s ease, box-shadow .08s ease;
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.btn:hover {
-  transform: translateY(-2px)
-}
-
-.btn.primary {
-  background: var(--accent);
-  color: white
-}
-
-.btn.danger {
-  background: var(--danger);
-  color: white
-}
-
-.template-grid {
+.brand__mark {
   display: grid;
-  gap: 12px;
-  grid-template-columns: 1fr;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 
-@media(min-width:720px) {
-  .template-grid {
-    grid-template-columns: 1fr 1fr
+.brand__text {
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
+}
+
+/* ── สลับภาษา ──────────────────────────────────────────────── */
+
+.lang {
+  display: flex;
+  padding: 2px;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--r-sm);
+}
+
+.lang__btn {
+  padding: 5px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 2px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background var(--speed) ease, color var(--speed) ease;
+}
+
+.lang__btn:hover {
+  color: var(--ink);
+}
+
+.lang__btn[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+/* ── หน้าเริ่มเกม: เนื้อหาซ้าย + กระดานผลงานขวา ─────────────── */
+
+.setup-grid {
+  display: grid;
+  gap: 32px;
+  padding-top: 40px;
+  align-items: start;
+}
+
+@media (min-width: 940px) {
+  .setup-grid {
+    grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.85fr);
+  }
+
+  .board {
+    position: sticky;
+    top: 24px;
   }
 }
 
-.inline {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin-top: 8px;
+.setup-main {
+  min-width: 0;
 }
 
-.template-item label
-{
-font-weight: 600;
-color: var(--muted)
+.hero {
+  margin-bottom: 32px;
 }
 
-.status {
-  margin: 12px 0;
-  color: var(--muted)
+.eyebrow {
+  margin: 0 0 12px;
+  color: var(--accent);
 }
 
-.hidden {
-  display: none
+.hero__title {
+  margin: 0 0 14px;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(1.6rem, 1.1rem + 2.1vw, 2.35rem);
+  line-height: 1.32;
+  letter-spacing: -0.015em;
 }
 
-.info {
-  margin-top: 8px;
-  padding: 8px;
-  background: #24e85a;
-  border-radius: 6px;
-  color:white;
-}
-
-.divider {
-  height: 1px;
-  background: #efefef;
-  margin: 12px 0
-}
-
-.guess-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin-top: 8px;
-}
-
-.guess-row input[type="text"] {
-  flex: 1;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #e6eef9;
-}
-
-input[type="number"],
-select,
-input[type="text"] {
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #e6eef9;
-  font-size: 0.95rem;
-}
-
-.log {
-  margin-top: 12px;
-  max-height: 160px;
-  overflow: auto;
-  border-top: 1px solid #f1f5f9;
-  padding-top: 8px;
-}
-
-.log ul {
-  list-style: none;
-  padding: 0;
+.hero__lede {
+  max-width: 52ch;
   margin: 0;
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 6px
+  color: var(--ink-soft);
 }
 
-.log li {
-  background: #f8f9fb;
-  padding: 8px 10px;
-  border-radius: 8px;
-  color: #102a43;
-  font-size: 0.95rem
+.hero__answers {
+  display: inline-flex;
+  gap: 6px;
+  margin-left: 4px;
+  white-space: nowrap;
 }
 
-.feedback.error {
-  color: var(--danger);
-  margin-top: 6px;
-  font-weight: 600
+.hero__answer {
+  padding: 1px 8px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  font-weight: 500;
 }
 
-.leaderboard-list {
-  padding-left: 18px;
-  margin-top: 8px;
-  color: var(--muted)
+.hero__answer.is-yes {
+  color: var(--yes);
 }
 
-.find-rank {
+.hero__answer.is-no {
+  color: var(--no);
+}
+
+.hero__answer.is-maybe {
+  color: var(--maybe);
+}
+
+/* ── แผง ────────────────────────────────────────────────────── */
+
+.panel {
+  padding: 24px;
+  margin-bottom: 28px;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+}
+
+.panel__title {
+  margin: 0 0 4px;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1.0625rem;
+}
+
+.panel__hint {
+  margin: 0 0 18px;
+  color: var(--ink-soft);
+  font-size: 0.8125rem;
+}
+
+.panel__label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.panel__divider {
+  height: 1px;
+  margin: 24px 0;
+  background: var(--rule);
+}
+
+.field-block {
+  max-width: 320px;
+}
+
+/* ── ช่องกรอก ────────────────────────────────────────────────── */
+
+input[type="text"] {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--card);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--r-sm);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 0.9375rem;
+  transition: border-color var(--speed) ease, box-shadow var(--speed) ease;
+}
+
+input[type="text"]::placeholder {
+  color: var(--placeholder);
+}
+
+input[type="text"]:focus {
+  border-color: var(--ink);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.field-row {
   display: flex;
   gap: 8px;
-  margin-top: 12px;
-  align-items: center
 }
 
-.find-rank input {
-  flex: 1
+.field-row input {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
-/* ... (โค้ดเดิมทั้งหมดของคุณ) ... */
-
-.card h2 {
-    border: none;
+.field-error {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  background: var(--no-wash);
+  border-left: 2px solid var(--no);
+  color: var(--no);
+  font-size: 0.8125rem;
 }
 
-/* (โค้ดสี log จากครั้งก่อน) */
-.log li.system-correct {
-  background-color: #d4edda;
-  border-color: #c3e6cb;
-  color: #155724;
-  font-weight: bold;
-}
-.log li.system-incorrect {
-  background-color: #f8d7da;
-  border-color: #f5c6cb;
-  color: #721c24;
-  font-weight: bold;
+/* ── ปุ่มหมวด ────────────────────────────────────────────────── */
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 24px;
+  padding: 0;
+  list-style: none;
 }
 
-
-/* VVVV (โค้ดใหม่ที่เพิ่มเข้ามา) VVVV */
-
-/* สีพื้นหลัง .info เมื่อ "ชนะ" (สีเขียว) */
-.info.info-win {
-  background-color: #d4edda;
-  border-color: #c3e6cb;
-  color: #155724; /* (เปลี่ยนสีตัวอักษรด้วย) */
+.chip {
+  padding: 8px 14px;
+  background: var(--card);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--r-sm);
+  color: var(--ink);
+  font-family: var(--body);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background var(--speed) ease, border-color var(--speed) ease,
+    color var(--speed) ease;
 }
-/* (เปลี่ยนสี text 'value' ข้างใน) */
-.info.info-win .value {
-  color: #155724;
+
+.chip:hover {
+  border-color: var(--ink);
 }
 
-/* สีพื้นหลัง .info เมื่อ "ยอมแพ้" (สีแดง) */
-.info.info-surrender {
-  background-color: #f8d7da;
-  border-color: #f5c6cb;
-  color: #721c24; /* (เปลี่ยนสีตัวอักษรด้วย) */
+.chip[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
 }
-/* (เปลี่ยนสี text 'value' ข้างใน) */
-.info.info-surrender .value {
-  color: #721c24;
+
+/* ── ปุ่ม ────────────────────────────────────────────────────── */
+
+.btn {
+  flex: 0 0 auto;
+  padding: 10px 18px;
+  background: var(--card);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--r-sm);
+  color: var(--ink);
+  font-family: var(--body);
+  font-weight: 600;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--speed) ease, border-color var(--speed) ease,
+    color var(--speed) ease;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--ink);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: progress;
+}
+
+.btn--primary {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+/* ปุ่มคำตอบสุดท้าย: เป็นเส้นขอบสีเหลือง ไม่แข่งกับปุ่มหลักสีขาว */
+.btn--final {
+  background: transparent;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn--final:hover:not(:disabled) {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #1a1408;
+}
+
+.btn--quiet {
+  color: var(--muted);
+}
+
+.btn--quiet:hover:not(:disabled) {
+  color: var(--ink);
+}
+
+.btn--danger {
+  background: transparent;
+  border-color: var(--rule-strong);
+  color: var(--muted);
+}
+
+.btn--danger:hover:not(:disabled),
+.btn--danger.is-armed {
+  background: var(--no-wash);
+  border-color: var(--no);
+  color: var(--no);
+}
+
+:where(button, input, a):focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ── วิธีเล่น 3 ขั้น (เป็นบรรทัดคั่น ไม่ใช่กล่อง) ─────────────── */
+
+.how {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--rule);
+}
+
+.how__step {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.how__num {
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: var(--label-size);
+  font-weight: 600;
+}
+
+.how__text {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+}
+
+/* ── กระดานผลงาน ─────────────────────────────────────────────── */
+
+.board {
+  padding: 20px;
+  background: var(--card);
+  border: 1px solid var(--rule);
+  border-radius: var(--r);
+}
+
+.board__title {
+  margin: 0 0 4px;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.board__hint {
+  margin: 0;
+}
+
+.board__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.board__row {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 10px;
+  padding: 9px 0;
+  border-top: 1px solid var(--rule);
+}
+
+.board__rank {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.board__row[data-top="1"] .board__rank,
+.board__row[data-top="2"] .board__rank,
+.board__row[data-top="3"] .board__rank {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.board__name {
+  display: block;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+
+.board__meta {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+
+.board__word {
+  color: var(--ink-soft);
+}
+
+.board__score {
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+}
+
+.board__score small {
+  display: block;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.625rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.board__row.is-mine {
+  margin: 0 -10px;
+  padding: 9px 10px;
+  background: rgba(255, 255, 255, 0.045);
+  border-top-color: transparent;
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.board__empty {
+  margin: 0;
+  padding: 14px 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+/* ── คอนโซลเกม ───────────────────────────────────────────────── */
+
+.console {
+  max-width: 860px;
+  margin: 40px auto 0;
+  background: var(--card);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+
+.console__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--rule);
+  background: var(--card-sunken);
+}
+
+.console__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.badge {
+  padding: 3px 8px;
+  background: var(--accent-wash);
+  border: 1px solid var(--accent);
+  border-radius: 2px;
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: var(--label-size);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.badge[data-status="won"] {
+  background: var(--yes-wash);
+  border-color: var(--yes);
+  color: var(--yes);
+}
+
+.badge[data-status="surrendered"] {
+  background: var(--no-wash);
+  border-color: var(--no);
+  color: var(--no);
+}
+
+.console__category {
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.console__actions {
+  display: flex;
+  gap: 4px;
+}
+
+.console__actions .btn {
+  padding: 6px 12px;
+  font-size: 0.8125rem;
+}
+
+/* ── แถบนับคำถาม 20 ช่อง ────────────────────────────────────── */
+
+.gauge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gauge__ticks {
+  display: flex;
+  gap: 2px;
+}
+
+.gauge__tick {
+  width: 6px;
+  height: 14px;
+  background: transparent;
+  border: 1px solid var(--rule-strong);
+  border-radius: 1px;
+  transition: background var(--speed) ease, border-color var(--speed) ease;
+}
+
+.gauge__tick.is-used {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.gauge__count {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: var(--label-size);
+  font-variant-numeric: tabular-nums;
+}
+
+.gauge__count b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ── บทสนทนาแบบบันทึกการเล่น ─────────────────────────────────── */
+
+.transcript {
+  display: flex;
+  flex-direction: column;
+  min-height: 300px;
+  max-height: 46vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule-strong) transparent;
+}
+
+.transcript::-webkit-scrollbar {
+  width: 6px;
+}
+
+.transcript::-webkit-scrollbar-thumb {
+  background: var(--rule-strong);
+}
+
+.entry {
+  align-self: stretch;
+  margin: 0;
+  padding: 11px 18px;
+  font-size: 0.9375rem;
+}
+
+.entry--question {
+  border-bottom: 1px solid var(--rule);
+  box-shadow: inset 2px 0 0 var(--rule-strong);
+  padding-left: 16px;
+}
+
+.entry--answer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--rule);
+  box-shadow: inset 2px 0 0 var(--rule-strong);
+  padding-left: 16px;
+}
+
+.entry--answer.is-yes {
+  box-shadow: inset 2px 0 0 var(--yes);
+}
+
+.entry--answer.is-no {
+  box-shadow: inset 2px 0 0 var(--no);
+}
+
+.entry--answer.is-maybe {
+  box-shadow: inset 2px 0 0 var(--maybe);
+}
+
+.verdict {
+  padding: 2px 9px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  font-family: var(--mono);
+  font-size: var(--label-size);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.verdict[data-answer="Yes"] {
+  color: var(--yes);
+}
+
+.verdict[data-answer="No"] {
+  color: var(--no);
+}
+
+.verdict[data-answer="Maybe"] {
+  color: var(--maybe);
+}
+
+.verdict[data-answer="err"] {
+  color: var(--no);
+}
+
+.entry--note {
+  padding: 10px 18px;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+.entry--note.is-good {
+  color: var(--yes);
+}
+
+.entry--note.is-bad {
+  color: var(--no);
+}
+
+.thinking {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.thinking__dot {
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  animation: blink 1.1s steps(2, start) infinite;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ── ช่องถาม ────────────────────────────────────────────────── */
+
+.composer {
+  padding: 16px 18px 18px;
+  border-top: 1px solid var(--rule-strong);
+  background: var(--card-sunken);
+}
+
+.quick {
+  margin-bottom: 14px;
+}
+
+.quick__label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.quick__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.quick__btn {
+  padding: 6px 12px;
+  background: var(--card);
+  border: 1px dashed var(--rule-strong);
+  border-radius: var(--r-sm);
+  color: var(--muted);
+  font-family: var(--body);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: color var(--speed) ease, border-color var(--speed) ease;
+}
+
+.quick__btn:hover {
+  border-style: solid;
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.field-row--guess {
+  margin-top: 8px;
+}
+
+/* ── หน้าเฉลย ───────────────────────────────────────────────── */
+
+.reveal {
+  max-width: 640px;
+  margin: 48px auto 0;
+  padding: 36px 32px;
+  background: var(--card);
+  border: 1px solid var(--rule-strong);
+  border-top: 3px solid var(--ink);
+  border-radius: var(--r);
+  text-align: center;
+}
+
+.reveal[data-result="won"] {
+  border-top-color: var(--yes);
+}
+
+.reveal[data-result="surrendered"] {
+  border-top-color: var(--no);
+}
+
+.reveal__eyebrow {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: var(--label-size);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.reveal[data-result="won"] .reveal__eyebrow {
+  color: var(--yes);
+}
+
+.reveal[data-result="surrendered"] .reveal__eyebrow {
+  color: var(--no);
+}
+
+.reveal__word {
+  margin: 0 0 12px;
+  font-family: var(--display);
+  font-weight: 600;
+  font-size: clamp(1.9rem, 1.2rem + 3vw, 3rem);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.reveal__meta {
+  margin: 0 0 26px;
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.reveal__actions {
+  display: flex;
+  justify-content: center;
+}
+
+/* ── จอเล็ก ─────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .setup-grid {
+    padding-top: 28px;
+  }
+}
+
+@media (max-width: 640px) {
+  body {
+    padding: 0 16px 48px;
+  }
+
+  .console,
+  .reveal {
+    margin-top: 24px;
+  }
+
+  .panel {
+    padding: 20px 16px;
+  }
+
+  .console__bar {
+    align-items: flex-start;
+  }
+
+  .console__actions {
+    order: 3;
+    width: 100%;
+  }
+
+  .console__actions .btn {
+    flex: 1 1 0;
+  }
+
+  .gauge__label {
+    display: none;
+  }
+
+  .transcript {
+    max-height: 42vh;
+    min-height: 220px;
+  }
+
+  .field-row {
+    flex-wrap: wrap;
+  }
+
+  .field-row input {
+    flex: 1 1 100%;
+  }
+
+  .field-row .btn {
+    flex: 1 1 100%;
+  }
+
+  .reveal {
+    padding: 28px 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

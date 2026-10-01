@@ -1,63 +1,58 @@
 // frontend/public/scripts/apiService.js
+// ชั้นเดียวที่คุยกับ backend — ทุกฟังก์ชันโยน Error พร้อมข้อความภาษาไทยที่อ่านรู้เรื่อง
 
-// (สำคัญ!) ตั้งค่า URL และ Port 3222 ของ Backend
+import { t } from './i18n.js';
+
 const API_URL = 'http://localhost:3222/api/game';
+const LEADERBOARD_URL = 'http://localhost:3222/api/leaderboard';
 
-// CRUD: Create
-// export async function createNewGame() {
-//   const response = await fetch(`${API_URL}/new`, { method: 'POST' });
-//   if (!response.ok) throw new Error('Failed to create game');
-//   return await response.json(); // { gameId: "..." }
-// }
+async function request(url, options = {}) {
+  let response;
 
-// (วางทับ "createNewGame" เก่า)
-export async function createNewGame(prompt) {
-  const response = await fetch(`${API_URL}/new`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ categoryPrompt: prompt }) // <-- (ส่ง prompt ไปใน body)
-  });
-
-  if (!response.ok) throw new Error('Failed to create game');
-  return await response.json(); // { gameId: "..." }
-}
-
-// CRUD: Read
-export async function getGame(gameId) {
-  const response = await fetch(`${API_URL}/${gameId}`);
-  if (!response.ok) {
-    throw new Error('Game not found'); // โยน Error ถ้าหาเกมไม่เจอ (404)
+  try {
+    response = await fetch(url, options);
+  } catch {
+    throw new Error(t('error.network'));
   }
-  return await response.json(); // { history: [...] }
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(
+      data.error || data.msg || t('error.server', { status: response.status }),
+    );
+  }
+
+  return data;
 }
 
-// CRUD: Update
-export async function askQuestion(gameId, question) {
-  const response = await fetch(`${API_URL}/${gameId}/ask`, {
+const postJson = (url, body) =>
+  request(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ question: question })
+    body: JSON.stringify(body),
   });
-  if (!response.ok) throw new Error('Failed to ask question');
-  return await response.json(); // { answer: "Yes" }
+
+export function createNewGame(category, playerName) {
+  return postJson(`${API_URL}/new`, { categoryPrompt: category, playerName });
 }
 
-// (วางโค้ดนี้ "เพิ่ม" เข้าไปในไฟล์)
-
-// ฟังก์ชันใหม่ สำหรับ "ส่งคำทาย"
-export async function submitGuess(gameId, guess) {
-  const response = await fetch(`${API_URL}/${gameId}/guess`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ guess: guess }) // (ส่ง 'guess' ไป)
-  });
-  if (!response.ok) throw new Error('Failed to submit guess');
-  return await response.json(); // (รับ { correct: true/false } กลับมา)
+export function getLeaderboard(limit = 10) {
+  return request(`${LEADERBOARD_URL}?limit=${limit}`);
 }
 
-// CRUD: Delete
-export async function deleteGame(gameId) {
-  const response = await fetch(`${API_URL}/${gameId}`, { method: 'DELETE' });
-  if (!response.ok) throw new Error('Failed to delete game');
-  return await response.json();
+export function getGame(gameId) {
+  return request(`${API_URL}/${gameId}`);
+}
+
+export function askQuestion(gameId, question) {
+  return postJson(`${API_URL}/${gameId}/ask`, { question });
+}
+
+export function submitGuess(gameId, guess) {
+  return postJson(`${API_URL}/${gameId}/guess`, { guess });
+}
+
+export function deleteGame(gameId) {
+  return request(`${API_URL}/${gameId}`, { method: 'DELETE' });
 }

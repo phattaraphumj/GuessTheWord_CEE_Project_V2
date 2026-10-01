@@ -3,8 +3,8 @@ import { randomInt } from "node:crypto";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 //import fetch from "node-fetch";
 
-// ✅ ตรวจสอบ API Key จาก .env หรือใช้ key สำรอง
-const apiKey = process.env.GEMINI_API_KEY || "AIzaSyDOVqUOt18TpcgZwqX4qnzLi1AVyunx0gw";
+// ✅ ต้องมี API Key จาก .env เท่านั้น (ห้าม hardcode ในโค้ดเด็ดขาด)
+const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
   throw new Error("❌ GEMINI_API_KEY is not set in .env file");
 }
@@ -118,8 +118,11 @@ async function safeGenerate(prompt, retries = 2) {
 // จำนวนคำที่ให้ AI สร้างเป็นตัวเลือก แล้วค่อยสุ่มเองในโค้ด
 const CANDIDATE_COUNT = 20;
 
-// ระดับความยาก: 1 = สุ่มได้ทั้งลิสต์, 2 = ข้ามของที่คนรู้จักดีที่สุด, 3 = เอาเฉพาะท้ายลิสต์
+// ระดับความยาก: 1 = สุ่มได้ทั้ง pool, 2 = ข้ามคำที่คนรู้จักดีที่สุด, 3 = เอาเฉพาะท้าย pool
 const GAME_DIFFICULTY = Number(process.env.GAME_DIFFICULTY) || 2;
+
+// จำนวนคำใน pool ของเกมหนึ่งรอบ (คำลับจะหยิบมาจากในนี้)
+const POOL_SIZE = 10;
 
 // แปลงคำตอบของ AI ให้เป็น array ของคำที่สะอาด
 function parseCandidateList(raw, count) {
@@ -157,24 +160,48 @@ function parseCandidateList(raw, count) {
     cleaned.push(value);
   }
 
-  return cleaned.slice(0, count);
+  // ตัดคำที่ "ยัด" คำอื่นในรายการทิ้ง เช่น ถ้ามีทั้ง "ค้างคาว" และ "ค้างคาวแม่ไก่"
+  // เพราะคำแบบหลังคือการเอาสองของมาต่อกัน ซึ่งไม่มีอยู่จริง
+  const real = cleaned.filter((word) =>
+    !cleaned.some((other) => other !== word && word.includes(other)),
+  );
+
+  return (real.length >= 6 ? real : cleaned).slice(0, count);
 }
 
-// สุ่มคำลับจากลิสต์ โดยเลี่ยงหัวลิสต์ (ของที่คนรู้จักดีที่สุด) ตามระดับความยาก
-function pickSecretWord(candidates) {
-  if (candidates.length <= 1) return candidates[0];
+// สุ่ม pool ขนาด fixed จากรายชื่อที่ AI คืนมา (สลับแบบ Fisher-Yates เพื่อไม่ให้เรียงตามเดิมทุกครั้ง)
+function samplePool(candidates, size = POOL_SIZE) {
+  const shuffled = [...candidates];
+  const take = Math.min(size, shuffled.length);
+
+  for (let i = 0; i < take; i++) {
+    const j = i + randomInt(shuffled.length - i);
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  return shuffled.slice(0, take);
+}
+
+// เลือกคำลับจาก pool โดยเลี่ยงคำที่คนรู้จักดีที่สุด ตามระดับความยาก
+function pickSecretWord(pool) {
+  if (pool.length <= 1) return pool[0];
 
   const startRatio = { 1: 0, 2: 0.4, 3: 0.75 }[GAME_DIFFICULTY] ?? 0;
-  const start = Math.floor(candidates.length * startRatio);
-  const pool = candidates.slice(start);
+  const start = Math.floor(pool.length * startRatio);
+  const narrowed = pool.slice(start);
 
-  return pool[randomInt(pool.length)];
+  return narrowed[randomInt(narrowed.length)];
 }
+
+// เดาภาษาจากหมวดที่ผู้เล่นพิมพ์: มีตัวอักษรไทย = ไทย, ไม่มี = อังกฤษ
+const detectLanguage = (text) => (/[฀-๿]/.test(text) ? "Thai" : "English");
 
 export const generateCandidates = async (
   userPrompt,
   count = CANDIDATE_COUNT,
 ) => {
+  const language = detectLanguage(userPrompt);
+
   const prompt = `
     You are a game master for a 'Guess the Word' game.
     The player chose this category: "${userPrompt}"
@@ -184,16 +211,19 @@ export const generateCandidates = async (
     Rules:
     1. Order them from the most well-known item to the least well-known item.
     2. All ${count} items must be different from each other.
-    3. Use the SAME language as the category above.
-    4. Each item must be 1-2 words, a concrete noun, no brands and no model names.
-    5. Every item must be something an average person in that country would recognise.
-    6. Name the actual object - never answer with a generic word such as "ของใช้" or "อุปกรณ์".
+    3. Write every item in ${language}. This is the most important rule — do not mix languages.
+    4. Each entry is ONE single item. Never glue two items together —
+       write "Spoon", never "Spoon Knife"; write "ค้างคาว", never "ค้างคาวแม่ไก่".
+    5. Every item must be a real, commonly used ${language} word — no invented or compound nonsense.
+    6. Each item must be 1-2 words, a concrete noun, no brands and no model names.
+    7. Every item must be something an average person would recognise.
+    8. Name the actual object - never a generic word such as "stuff", "device", "ของใช้" or "อุปกรณ์".
 
     Respond with ONLY a JSON array of ${count} strings, nothing else.
 
-    Format examples (do NOT copy the items, only follow the JSON format):
-    Category "Marvel heroes" -> ["Iron Man", "Thor", "Hulk", "Spider-Man", "Black Widow"]
-    Category "สัตว์ปีก" -> ["นกแก้ว", "นกกระเรียน", "อินทรี", "นกเหยี่ยว", "นกฟูก"]
+    Format examples (copy the FORMAT only, never the items):
+    English category -> ["Iron Man", "Thor", "Hulk", "Spider-Man", "Black Widow"]
+    Thai category -> ["นกแก้ว", "นกกระเรียน", "อินทรี", "นกเหยี่ยว", "นกฟูก"]
   `;
 
   const result = await safeGenerate(prompt);
@@ -207,11 +237,13 @@ export const generateSecretWord = async (userPrompt, count) => {
       throw new Error("AI returned an empty candidate list");
     }
 
-    const secretWord = pickSecretWord(candidates);
-    console.log(`🎲 Candidates (${candidates.length}): ${candidates.join(", ")}`);
+    const pool = samplePool(candidates);
+    const secretWord = pickSecretWord(pool);
+
+    console.log(`🎲 Pool (${pool.length}): ${pool.join(", ")}`);
     console.log(`🔒 Secret word: ${secretWord}`);
 
-    return { secretWord, candidates };
+    return { secretWord, candidates: pool };
   } catch (error) {
     console.error("❌ Error generating secret word:", error?.message ?? error);
     return { secretWord: "Apple", candidates: ["Apple"] };
@@ -219,11 +251,11 @@ export const generateSecretWord = async (userPrompt, count) => {
 };
 
 // ฟังก์ชันหลักที่ controller เรียกใช้
-export const getAnswer = async (secretCeleb, question) => {
+export const getAnswer = async (secretWord, question) => {
   try {
     const prompt = `
       You are a game judge for a 'Guess the Word' game.
-      The secret word is: "${secretCeleb}"
+      The secret word is: "${secretWord}"
       The player asked: "${question}"
       
       Follow these rules:
@@ -249,15 +281,53 @@ export const getAnswer = async (secretCeleb, question) => {
   }
 };
 
-export const judgeGuess = async (secretCeleb, guess) => {
+const normalizeWord = (value) => value.trim().toLowerCase().replace(/\s+/g, " ");
+
+// คำที่ "ต่างจากคำลับชัดเจนเกินกว่าจะเป็นแค่พิมพ์ผิด" → ตัดสินว่าผิดทันทีโดยไม่ต้องถาม AI
+// เช่น คำลับ "ไก่" แต่ผู้เล่นเดา "แม่ไก่" (คำขยายความ) หรือ "chickens" กับ "chicken"
+function isTooFarFromSecret(guess, secretWord) {
+  const g = normalizeWord(guess);
+  const s = normalizeWord(secretWord);
+
+  if (!g || !s) return true;
+  if (g === s) return false;
+
+  // ยาวต่างกันเกิน 1 ตัวอักษร = คนละคำ ไม่ใช่พิมพ์ผิด
+  if (Math.abs(g.length - s.length) > 1) return true;
+
+  // ฝั่งหนึ่งเป็นคำเดียว อีกฝั่งเป็นวลี = คำขยายความ
+  if (g.includes(" ") !== s.includes(" ")) return true;
+
+  return false;
+}
+
+export const judgeGuess = async (secretWord, guess, pool = []) => {
+  // กรณีชัดเจนว่าไม่ใช่คำเดียวกัน ปฏิเสธเลย ประหยัดโควตา AI ด้วย
+  if (isTooFarFromSecret(guess, secretWord)) {
+    console.log(`🚫 "${guess}" ต่างจากคำลับ "${secretWord}" เกินกว่าจะเป็นพิมพ์ผิด`);
+    return "No";
+  }
+
   try {
+    const poolHint =
+      pool.length > 0 ? `\nThe hidden word is exactly one of these: ${pool.join(", ")}` : "";
+
     const prompt = `
       You are a game judge.
-      The secret answer is: "${secretCeleb}"
+      The secret answer is: "${secretWord}"${poolHint}
       The player guessed: "${guess}"
-      
-      Is this guess correct? Allow for common typos, partial names (e.g., 'Nadech' for 'Nadech Kugimiya'), or names in another language (e.g., 'ลิซ่า' for 'Lisa').
-      
+
+      Say 'Yes' ONLY when the guess means the SAME single word as the secret answer.
+      Accept small typos, a missing or extra accent, and the same word written in another
+      alphabet or language ('Khi' or 'Kai' for 'ไก่', 'Lemon' for 'มะนาว').
+
+      Say 'No' when:
+      - the guess is a different word from the same category
+      - the guess is only a part of the secret word
+      - the guess is the secret word with extra words attached, for example 'แม่ไก่' for 'ไก่'
+        or 'mother hen' for 'hen' — extra words make it a different word
+      - the guess is a longer form of the same thing, for example 'chickens' for 'chicken'
+
       Answer with only one word: 'Yes' or 'No'.
     `;
 

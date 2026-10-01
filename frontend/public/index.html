@@ -1,162 +1,235 @@
 <!doctype html>
 <html lang="en">
-
-<head>
+  <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Guess the Word</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Guess It — 20 Questions Against an AI</title>
+    <meta
+      name="description"
+      content="A 20-questions guessing game. The AI hides one word, you can only ask yes/no questions."
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='16' fill='%23FFB454'/%3E%3Ctext x='16' y='23' font-family='monospace' font-size='20' font-weight='600' text-anchor='middle' fill='%230F1424'%3E?%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bai+Jamjuree:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="styles.css" />
-</head>
+  </head>
 
-<body>
-    <main class="container">
-        <header>
-            <h1>Guess the Word</h1>
-            <!--p class="subtitle">Ask yes/no questions to guess the actor or actress</p-->
-        </header>
+  <body>
+    <div class="app">
+      <header class="topbar">
+        <span class="brand">
+          <span class="brand__mark" aria-hidden="true">?</span>
+          <span class="brand__text" data-i18n="brand.text">Guess It</span>
+        </span>
 
-        <section id="rules" class="card">
-            <h2>How to Play</h2>
-            <div id="rules-text" class="placeholder">
-                1. Click "Start Game" to begin.<br />
-                2. Ask yes/no questions using the provided templates or your own questions (yes/no questions
-                only).<br />
-                3. Guess the word when you think you know it.<br />
-                4. You can surrender at any time to reveal the word.<br />
-            </div>
-        </section>
+        <div class="lang" role="group" data-i18n-aria-label="lang.toggle">
+          <button type="button" class="lang__btn" data-lang="en" aria-pressed="true">
+            EN
+          </button>
+          <button type="button" class="lang__btn" data-lang="th" aria-pressed="false">
+            ไทย
+          </button>
+        </div>
+      </header>
 
-        <section id="game-controls" class="card">
-            <h2>Game</h2>
+      <main>
+        <!-- ── หน้าเลือกหมวด + กระดานผลงาน ───────────────────── -->
+        <section id="view-setup" class="view">
+          <div class="setup-grid">
+            <div class="setup-main">
+              <div class="hero">
+                <p class="eyebrow" data-i18n="hero.eyebrow">A 20-questions game</p>
+                <h1 class="hero__title">
+                  <span data-i18n="hero.title1">The AI picks the secret word.</span><br />
+                  <span data-i18n="hero.title2">All you get is questions.</span>
+                </h1>
+                <p class="hero__lede">
+                  <span data-i18n="hero.lede"
+                    >Choose a category and the AI hides one word from it.</span
+                  >
+                  <span class="hero__answers">
+                    <b class="hero__answer is-yes" data-i18n="verdict.yes">Yes</b>
+                    <b class="hero__answer is-no" data-i18n="verdict.no">No</b>
+                    <b class="hero__answer is-maybe" data-i18n="verdict.maybe">Maybe</b>
+                  </span>
+                </p>
+              </div>
 
-            <div id="category-section">
-                <h3 id="category-header">Category (Prompt)</h3>
-                
-                <div id="category-input-wrapper" class="guess-row" style="margin-bottom: 12px;">
-                    <input id="category-prompt" type="text" autocomplete="off" placeholder="เช่น 'ของใช้ในครัว', 'สัตว์ปีก', 'หนัง Marvel'" />
+              <div class="panel">
+                <div class="field-block">
+                  <label class="panel__label" for="player-name" data-i18n="panel.nameLabel">
+                    Your name on the board
+                  </label>
+                  <input
+                    id="player-name"
+                    type="text"
+                    autocomplete="off"
+                    maxlength="40"
+                    data-i18n-placeholder="panel.namePlaceholder"
+                  />
                 </div>
-                
-                <!-- <div id="category-display-wrapper" class="info hidden" style="margin-bottom: 12px;">
-                    <strong>Category:</strong> <span id="category-display-text"></span>
-                </div> -->
-            </div>
 
-            <div class="controls-row">
-                <button id="start-btn" class="btn primary">▶ Start Game</button>
-                <button id="surrender-btn" class="btn danger hidden">Surrender</button>
-            </div>
+                <div class="panel__divider" role="presentation"></div>
 
-            <div id="current-state" class="status">
-                <strong>Game state:</strong> <span id="game-state">Not started</span>
-            </div>
+                <h2 class="panel__title" data-i18n="panel.categoryTitle">Pick a category</h2>
+                <p class="panel__hint" data-i18n="panel.categoryHint">
+                  Tap a category, or type your own below.
+                </p>
 
-            <div id="picked-actor" class="hidden info">
-                <strong>Word:</strong> <span id="actor-name">—</span>
-            </div>
+                <ul class="chips" id="category-chips"></ul>
 
-            <hr />
-
-            <div id="ask-section">
-                <h3>Ask a question</h3>
-
-                <!--div class="template-grid"-->
-                    <!--
-                    <div class="template-item">
-                        <label>Sex</label>
-                        <div class="inline">
-                            <button class="btn template-btn" data-type="sex" data-value="male">Is the actor
-                                male?</button>
-                            <button class="btn template-btn" data-type="sex" data-value="female">Is the actor
-                                female?</button>
-                        </div>
-                    </div>
-                    
-                    <div class="template-item">
-                        <label for="nationality">Ethnicity / Nationality</label>
-                        <div class="inline">
-                            <select id="nationality">
-                                <option value="">Select</option>
-                                <option>American</option>
-                                <option>British</option>
-                                <option>Indian</option>
-                                <option>Chinese</option>
-                                <option>French</option>
-                                <option>Japanese</option>
-                                <option>Korean</option>
-                                <option>Brazilian</option>
-                                <option>Australian</option>
-                            </select>
-                            <button id="ask-nationality" class="btn">Ask</button>
-                        </div>
-                    </div>
-
-                    <div class="template-item">
-                        <label>Age</label>
-                        <div class="inline">
-                            <select id="age-compare">
-                                <option value="older">Is the actor older than</option>
-                                <option value="younger">Is the actor younger than</option>
-                            </select>
-                            <input id="age-value" type="number" min="0" placeholder="Age" />
-                            <button id="ask-age" class="btn">Ask</button>
-                        </div>
-                    </div>
-                </div>
-                -->
-                <!--h3>Custom yes/no question</h3-->
-                
-                <!-- 
-                  VVVV --- (นี่คือส่วนที่แก้ไข) --- VVVV
-                  1. เพิ่ม class="guess-row"
-                  2. เพิ่มปุ่ม "Enter"
-                -->
-                <form id="custom-question-form" class="guess-row">
-                    <input id="custom-question" type="text" autocomplete="on" placeholder="Confirm by pressing Enter" />
-                    <button type="submit" id="ask-question-btn" class="btn">Enter</button>
+                <form id="setup-form" class="setup-form" novalidate>
+                  <label class="panel__label" for="category-prompt" data-i18n="panel.customLabel">
+                    Or type your own
+                  </label>
+                  <div class="field-row">
+                    <input
+                      id="category-prompt"
+                      type="text"
+                      autocomplete="off"
+                      maxlength="60"
+                      data-i18n-placeholder="panel.customPlaceholder"
+                    />
+                    <button id="start-btn" class="btn btn--primary" type="submit" data-i18n="btn.start">
+                      Start game
+                    </button>
+                  </div>
+                  <p id="setup-error" class="field-error" role="alert" hidden></p>
                 </form>
-                <!-- ^^^^ --- (จบส่วนที่แก้ไข) --- ^^^^ -->
-                
-                <div id="custom-question-feedback" class="feedback"></div>
+              </div>
 
-                <div class="divider"></div>
-
-                <h3>Answer by guessing the word</h3>
-                <div class="guess-row">
-                    <input id="guess-input" type="text" placeholder="Type the word (typos allowed)" />
-                    <button id="submit-guess" class="btn primary">Submit Guess</button>
-                </div>
-
-                <!--div class="divider"></div-->
-
-                <div id="log" class="log">
-                    <h4>Log</h4>
-                    <ul id="log-list"></ul>
-                </div>
+              <ol class="how">
+                <li class="how__step">
+                  <span class="how__num" aria-hidden="true">1</span>
+                  <p class="how__text" data-i18n="how.1"></p>
+                </li>
+                <li class="how__step">
+                  <span class="how__num" aria-hidden="true">2</span>
+                  <p class="how__text" data-i18n="how.2"></p>
+                </li>
+                <li class="how__step">
+                  <span class="how__num" aria-hidden="true">3</span>
+                  <p class="how__text" data-i18n="how.3"></p>
+                </li>
+              </ol>
             </div>
+
+            <aside class="board" aria-labelledby="board-title">
+              <h2 class="board__title" id="board-title" data-i18n="board.title">Leaderboard</h2>
+              <p class="board__hint" data-i18n="board.hint"></p>
+              <ol class="board__list" id="leaderboard-list"></ol>
+            </aside>
+          </div>
         </section>
 
-        <section id="end-actions" class="card hidden">
-            <h2>Game finished</h2>
-            <div>
-                <label for="player-name">Add your name to leaderboard</label>
-                <input id="player-name" type="text" placeholder="Your name" />
-                <button id="save-score" class="btn primary">Save to leaderboard</button>
-            </div>
-        </section>
-        <!--
-        <section id="leaderboard" class="card">
-            <h2>Leaderboard (Top 5)</h2>
-            <ol id="leaderboard-list" class="leaderboard-list">
-            </ol>
+        <!-- ── หน้าเล่นเกม ──────────────────────────────────────── -->
+        <section id="view-play" class="view" hidden>
+          <div class="console">
+            <div class="console__bar">
+              <div class="console__meta">
+                <span class="badge" id="game-state">Playing</span>
+                <span class="console__category" id="category-label"></span>
+              </div>
 
-            <div class="find-rank">
-                <input id="find-name" type="text" placeholder="Enter your name to find rank" />
-                <button id="find-rank-btn" class="btn">Find my rank</button>
-            </div>
-        </section>
-        -->
-    </main>
-    <script src="scripts/AI.js" type="module"></script>
-</body>
+              <div class="gauge">
+                <span class="gauge__label" data-i18n="gauge.label">Questions used</span>
+                <div class="gauge__ticks" id="question-gauge" aria-hidden="true"></div>
+                <span class="gauge__count"
+                  ><b id="question-count">0</b><span>/20</span></span
+                >
+              </div>
 
+              <div class="console__actions">
+                <button id="restart-btn" class="btn btn--quiet" type="button" data-i18n="btn.restart">
+                  New game
+                </button>
+                <button
+                  id="surrender-btn"
+                  class="btn btn--danger"
+                  type="button"
+                  data-i18n="btn.surrender"
+                >
+                  Give up
+                </button>
+              </div>
+            </div>
+
+            <div
+              class="transcript"
+              id="transcript"
+              role="log"
+              aria-live="polite"
+              data-i18n-aria-label="transcript.label"
+            ></div>
+
+            <div class="composer">
+              <div class="quick">
+                <span class="quick__label" data-i18n="quick.label"></span>
+                <div class="quick__row" id="quick-questions"></div>
+              </div>
+
+              <form id="question-form" class="field-row" novalidate>
+                <input
+                  id="question-input"
+                  type="text"
+                  autocomplete="off"
+                  maxlength="200"
+                  data-i18n-placeholder="question.placeholder"
+                />
+                <button id="ask-btn" class="btn btn--primary" type="submit" data-i18n="btn.ask">
+                  Ask
+                </button>
+              </form>
+
+              <form id="guess-form" class="field-row field-row--guess" novalidate>
+                <input
+                  id="guess-input"
+                  type="text"
+                  autocomplete="off"
+                  maxlength="60"
+                  data-i18n-placeholder="guess.placeholder"
+                />
+                <button
+                  id="submit-guess"
+                  class="btn btn--final"
+                  type="submit"
+                  data-i18n="btn.submitGuess"
+                >
+                  Submit guess
+                </button>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── หน้าเฉลย ────────────────────────────────────────── -->
+        <section id="view-end" class="view" hidden>
+          <div class="reveal" id="reveal-card" data-result="won">
+            <p class="reveal__eyebrow" id="reveal-eyebrow"></p>
+            <p class="reveal__word" id="reveal-word"></p>
+            <p class="reveal__meta" id="reveal-meta"></p>
+            <div class="reveal__actions">
+              <button
+                id="play-again-btn"
+                class="btn btn--primary"
+                type="button"
+                data-i18n="btn.playAgain"
+              >
+                Play again
+              </button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="scripts/app.js" type="module"></script>
+  </body>
 </html>

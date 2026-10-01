@@ -1,26 +1,44 @@
 // frontend/public/scripts/domElements.js
+// รวบรวม element ที่ทุกส่วนต้องใช้ เลือกจาก id ใน index.html ที่จุดเดียว
 
-// ค้นหา ID ทั้งหมดจาก index.html ของคุณ
-export const startBtn = document.getElementById('start-btn');
-export const surrenderBtn = document.getElementById('surrender-btn');
+const byId = (id) => document.getElementById(id);
 
-export const gameStateSpan = document.getElementById('game-state');
-export const actorNameSpan = document.getElementById('actor-name');
-export const pickedActorDiv = document.getElementById('picked-actor');
+export const views = {
+  setup: byId('view-setup'),
+  play: byId('view-play'),
+  end: byId('view-end'),
+};
 
-export const customQuestionForm = document.getElementById('custom-question-form');
-export const customQuestionInput = document.getElementById('custom-question');
+// หน้าเริ่มเกม
+export const setupForm = byId('setup-form');
+export const chipList = byId('category-chips');
+export const playerNameInput = byId('player-name');
+export const categoryInput = byId('category-prompt');
+export const startBtn = byId('start-btn');
+export const setupError = byId('setup-error');
+export const leaderboardList = byId('leaderboard-list');
 
-export const logList = document.getElementById('log-list');
+// หน้าเล่นเกม
+export const badge = byId('game-state');
+export const categoryLabel = byId('category-label');
+export const gauge = byId('question-gauge');
+export const questionCount = byId('question-count');
+export const transcript = byId('transcript');
+export const restartBtn = byId('restart-btn');
+export const surrenderBtn = byId('surrender-btn');
 
-export const guessInput = document.getElementById('guess-input');
-export const submitGuessBtn = document.getElementById('submit-guess');
+export const questionForm = byId('question-form');
+export const questionInput = byId('question-input');
+export const askBtn = byId('ask-btn');
+export const quickRow = byId('quick-questions');
 
-export const endActionsSection = document.getElementById('end-actions');
+export const guessForm = byId('guess-form');
+export const guessInput = byId('guess-input');
+export const guessBtn = byId('submit-guess');
 
-export const categoryPrompt = document.getElementById('category-prompt');
-
-//... (export categoryPrompt ของคุณ) ...
-export const categoryInputWrapper = document.getElementById('category-input-wrapper');
-//... (export categoryPrompt ของคุณ) ...
-export const categoryHeader = document.getElementById('category-header'); // <-- 🌟 เพิ่มบรรทัดนี้
+// หน้าเฉลย
+export const revealCard = byId('reveal-card');
+export const revealEyebrow = byId('reveal-eyebrow');
+export const revealWord = byId('reveal-word');
+export const revealMeta = byId('reveal-meta');
+export const playAgainBtn = byId('play-again-btn');
