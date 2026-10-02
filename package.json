@@ -8,7 +8,8 @@
     "start": "node --watch backend/src/server.js",
     "start:backend": "node --watch backend/src/server.js",
     "start:frontend": "node --watch frontend/server.js",
-    "dev": "concurrently -n backend,frontend -c blue,green \"npm:start:backend\" \"npm:start:frontend\""
+    "dev": "concurrently -n backend,frontend -c blue,green \"npm:start:backend\" \"npm:start:frontend\"",
+    "vercel-build": "echo 'no build step — Vercel รัน api/index.js เป็น serverless function'"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

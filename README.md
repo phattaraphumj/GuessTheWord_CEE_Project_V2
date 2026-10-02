@@ -21,6 +21,7 @@ AI สุ่มคำลับมาจาก **pool 30 คำ** ในหมว
 - [ตัวแปรสภาพแวดล้อม](#ตัวแปรสภาพแวดล้อม)
 - [โครงสร้างโปรเจกต์](#โครงสร้างโปรเจกต์)
 - [API](#api)
+- [Deploy ขึ้น Vercel](#deploy-ขึ้น-vercel)
 - [เชิงวิศวกรรม](#เชิงวิศวกรรม)
 - [แก้ปัญหาที่พบบ่อย](#แก้ปัญหาที่พบบ่อย)
 
@@ -171,7 +172,10 @@ npm run start:frontend   # http://localhost:3221
 ```text
 ├── package.json              ← dependency + scripts ของทั้งโปรเจกต์ (ติดตั้งและรันจากตรงนี้)
 ├── .env.template             ← ตัวอย่างค่าที่ต้องตั้ง
+├── vercel.json               ← เส้นทางของ serverless function + การเขียนซ้ำ URL
 ├── docs/                     ← ภาพหน้าจอสำหรับ README
+├── api/
+│   └── index.js              ← entry สำหรับ Vercel (เสิร์ฟทั้ง static และ API)
 ├── backend/
 │   ├── scripts/
 │   │   └── rename-secret-word.js   ← ย้ายข้อมูลเกมเก่าไปใช้ชื่อ field secretWord (รันครั้งเดียว)
@@ -214,6 +218,52 @@ npm run start:frontend   # http://localhost:3221
 | `POST` | `/api/game/:id/guess` | รับ `guess` → คืน `correct`, และ `answer` เมื่อถูก |
 | `DELETE` | `/api/game/:id` | ลบเกม คืน `answer` ไว้แสดงเฉลย |
 | `GET` | `/api/leaderboard?limit=10` | กระดานผลงาน เรียงตามจำนวนคำถามน้อยที่สุด |
+
+---
+
+## Deploy ขึ้น Vercel
+
+โปรเจกต์นี้ deploy เป็น **serverless function เดียว** ที่รับทั้งหน้าเว็บและ API — ไม่ต้องแยก static ออกไป และไม่มีปัญหา CORS ข้ามโดเมน
+
+```text
+เบราว์เซอร์ ──► Vercel function (api/index.js)
+                 ├── /            → เสิร์ฟ frontend/public
+                 ├── /api/game/*  → gameRoutes
+                 └── /api/leaderboard → leaderboardRoutes
+```
+
+**สิ่งที่ต้องทำ**
+
+1. **เปิดให้ Atlas รับการเชื่อมต่อจาก Vercel** — ไปที่ Atlas → Network Access → IP Access List เพิ่ม `0.0.0.0/0` (Vercel ใช้ IP ที่เปลี่ยนได้ ถ้าไม่เปิดจะขึ้น `Could not connect to any servers`) — แลกกับความปลอดภัย เพราะ `MONGODB_URI` จะเปิดเผยต่อสาธารณะ ให้ถือว่าเป็นความเสี่ยงที่ต้องยอมรับ
+
+2. **ใส่ตัวแปรสภาพแวดล้อม** — มีแค่ 2 ตัว
+
+   | ตัวแปร | ค่า |
+   | --- | --- |
+   | `MONGODB_URI` | connection string ของ MongoDB |
+   | `GEMINI_API_KEY` | API key จาก Google AI Studio |
+
+   ตั้งให้ทั้ง `Production` และ `Preview` (`PORT_BACKEND` ไม่ต้องใส่)
+
+3. **Deploy**
+
+   ```bash
+   npm i -g vercel
+   vercel                 # ครั้งแรกเลือก project
+   vercel env add MONGODB_URI production
+   vercel env add GEMINI_API_KEY production
+   vercel --prod
+   ```
+
+   หรือผ่าน Dashboard: Import repo → Framework preset **Other** → ใส่ Environment Variables → Deploy
+
+**ข้อจำกัดที่ต้องรู้**
+
+- **free tier ของ Gemini เป็นโควตาทั้งโปรเจกต์รวมกัน** — ทุกคนที่เข้าเว็บใช้คีย์เดียวกัน คนเดียวเล่นหลายเกมก็กินโควตาวันนั้นหมด
+- **`maxDuration: 60` วินาที** — ถ้าโควตาหมดระบบจะไล่สลับโมเดล 4 ตัว จึงจำกัดรายการไว้ 4 ตัวและ retry ครั้งเดียวเพื่อไม่ให้หลุดเวลา
+- **connection ของ Mongo ถูกแคชไว้ต่อ instance** ด้วย `maxPoolSize: 1` เพราะ Vercel เปิด instance ใหม่ทุก cold start ถ้าไม่จำกัด pool จะเต็มเร็ว
+- **เกมที่ผู้เล่นทิ้งค้างหายไปเองใน 24 ชม.** ด้วย TTL index ที่ `createdAt` (เกมจะถูกลบทันทีเมื่อชนะหรือยอมแพ้อยู่แล้ว)
+- ถ้าอยากได้ static ไฟล์ผ่าน CDN แทนการผ่าน function: เพิ่ม `"outputDirectory": "frontend/public"` ใน `vercel.json` แล้วเปลี่ยน rewrite เป็น `"/api/:path*"` แต่แบบปัจจุบันสม่ำเสมอกว่าเพราะไม่ต้องพึ่งการ build static
 
 ---
 

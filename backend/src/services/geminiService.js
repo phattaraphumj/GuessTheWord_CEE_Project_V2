@@ -13,16 +13,12 @@ if (!apiKey) {
 // ⚠️ ใช้เฉพาะโมเดล Free Tier ของ Google AI Studio เท่านั้น
 //    (ตั้งแต่ 1 เม.ย. 2026 โมเดลตระกูล Pro ถูกย้ายไปเป็นแบบเสียเงินแล้ว
 //     free tier เหลือเฉพาะ Flash / Flash-Lite)
-//    โมเดลใหม่ ๆ อาจยังไม่อยู่ใน free tier ของทุกโปรเจกต์ ระบบจะลองทีละตัว
-//    แล้ว fallback ไปตัวถัดไปอัตโนมัติเมื่อเจอ 429/404
+//    ไม่เกิน 4 ตัว เพราะ Vercel ตัด request ที่ 60 วินาที (maxDuration)
 const MODEL_PRIORITY = [
-  "gemini-3.5-flash-lite",
-  "gemini-3.1-flash-lite",
-  "gemini-2.5-flash-lite",
-  "gemini-2.5-flash",
   "gemini-3.8-flash",
   "gemini-3.7-flash",
   "gemini-3.6-flash",
+  "gemini-3.5-flash-lite",
 ];
 
 // สร้าง instance ของ Gemini
@@ -66,7 +62,9 @@ async function candidateModels() {
 }
 
 // ยิงไปยัง Gemini: ลองทีละโมเดลในลิสต์, retry เมื่อเจอโควตาหมด/เครื่องหนัก
-async function safeGenerate(prompt, retries = 2) {
+// จำนวนโมเดลใน fallback chain ถูกจำกัดไว้ 4 ตัว เพราะบน Vercel มี maxDuration 60 วินาที
+// ถ้ายิงครบทุกตัวพร้อม retry จะหลุดเวลากลางคัน (ดู MODEL_PRIORITY ด้านล่าง)
+async function safeGenerate(prompt, retries = 1) {
   const candidates = await candidateModels();
   let lastError;
 

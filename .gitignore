@@ -11,4 +11,5 @@ yarn-error.log*
 
 .kilo/
 .claude/
-.impecable/
+.impeccable/
+.vercel

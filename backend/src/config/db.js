@@ -1,26 +1,24 @@
 // backend/src/config/db.js
-
-// (แก้ไข) เปลี่ยน 'require' เป็น 'import'
 import mongoose from 'mongoose';
 
 const connectDB = async () => {
   const uri = process.env.MONGODB_URI || process.env.MONGO_URI;
 
   if (!uri) {
-    console.error(
-      '❌ MONGODB_URI is not set. Copy .env.template to .env and fill in the values.',
-    );
-    process.exit(1);
+    // throw ไม่ใช่ process.exit — ใน serverless การ exit จะฆ่า instance ทิ้งทั้งตัว
+    throw new Error('MONGODB_URI is not set. Copy .env.template to .env and fill in the values.');
   }
 
-  try {
-    await mongoose.connect(uri);
-    console.log('MongoDB Connected...');
-  } catch (err) {
-    console.error(err.message);
-    process.exit(1);
-  }
+  // Serverless เรียก cold start ใหม่ทุกครั้ง → ต้องแคช connection ไว้บน globalThis
+  // และจำกัด pool ไว้สัก 1 connection ต่อ instance ไม่งั้น Atlas จะเต็มเร็วมาก
+  globalThis.__mongoose ??= mongoose
+    .connect(uri, {
+      maxPoolSize: 1,
+      serverSelectionTimeoutMS: 8000,
+    })
+    .then((m) => m);
+
+  return globalThis.__mongoose;
 };
 
-// (แก้ไข) เปลี่ยน 'module.exports' เป็น 'export default'
 export default connectDB;

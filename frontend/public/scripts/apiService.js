@@ -3,8 +3,13 @@
 
 import { t } from './i18n.js';
 
-const API_URL = 'http://localhost:3222/api/game';
-const LEADERBOARD_URL = 'http://localhost:3222/api/leaderboard';
+// ตอน dev หน้าเว็บอยู่ที่ port 3221 แต่ backend อยู่ที่ 3222 จึงต้องใช้ URL เต็ม
+// ตอน production (Vercel) ทั้งหมดอยู่โดเมนเดียวกัน ใช้ path สัมพัทธ์แทน
+const isLocal = ['localhost', '127.0.0.1'].includes(location.hostname);
+const BASE = isLocal ? 'http://localhost:3222' : '';
+
+const API_URL = `${BASE}/api/game`;
+const LEADERBOARD_URL = `${BASE}/api/leaderboard`;
 
 async function request(url, options = {}) {
   let response;
