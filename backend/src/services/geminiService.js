@@ -15,10 +15,10 @@ if (!apiKey) {
 //     free tier เหลือเฉพาะ Flash / Flash-Lite)
 //    ไม่เกิน 4 ตัว เพราะ Vercel ตัด request ที่ 60 วินาที (maxDuration)
 const MODEL_PRIORITY = [
-  "gemini-3.8-flash",
-  "gemini-3.7-flash",
-  "gemini-3.6-flash",
   "gemini-3.5-flash-lite",
+  "gemini-3.6-flash",
+  "gemini-3.7-flash",
+  "gemini-3.8-flash",
 ];
 
 // สร้าง instance ของ Gemini
